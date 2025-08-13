@@ -23,4 +23,8 @@ export class ChasePlugin implements IBankPlugin {
     ];
     return mockTransactions;
   }
+
+  public getBankName(): string {
+    return 'ChasePlugin'; // Add this method
+  }
 }

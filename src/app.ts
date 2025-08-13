@@ -1,21 +1,29 @@
-import 'reflect-metadata';
+import "reflect-metadata";
 import * as express from 'express';
 import { InversifyExpressServer } from 'inversify-express-utils';
-import { container } from './container';
+import { configureContainer } from './container'; // Import only configureContainer
 
-// Start the server
-const server = new InversifyExpressServer(container);
+async function startApp() {
+  const container = await configureContainer(); // Get the configured container
 
-server.setConfig((app) => {
-  // Set up standard Express middleware
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
-});
+  // Start the server with the configured container
+  const server = new InversifyExpressServer(container);
 
-const app = server.build();
-const port = 3000;
+  server.setConfig((app) => {
+    // Set up standard Express middleware
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
+  });
 
-app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
-  console.log('API routes are automatically registered from controllers.');
+  const app = server.build();
+  const port = 3000;
+
+  app.listen(port, () => {
+    console.log(`Server is running at http://localhost:${port}`);
+    console.log('API routes are automatically registered from controllers.');
+  });
+}
+
+startApp().catch(error => {
+  console.error("Error starting application:", error);
 });

@@ -1,3 +1,4 @@
+// src/domains/account-information/plugins/BoaPlugin.ts
 import { injectable } from 'inversify';
 import { IBankPlugin } from '../interfaces/IBankPlugin';
 import 'reflect-metadata';
@@ -22,5 +23,9 @@ export class BoaPlugin implements IBankPlugin {
       { id: 'tx-boa-002', amount: 1500.00, description: 'Paycheck' },
     ];
     return mockTransactions;
+  }
+
+  public getBankName(): string {
+    return 'BoaPlugin'; // Add this method
   }
 }
