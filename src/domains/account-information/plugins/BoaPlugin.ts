@@ -1,4 +1,3 @@
-// src/domains/account-information/plugins/BoaPlugin.ts
 import { injectable } from 'inversify';
 import { IBankPlugin } from '../interfaces/IBankPlugin';
 import 'reflect-metadata';
