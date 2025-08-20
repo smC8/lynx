@@ -1,9 +1,9 @@
 import { injectable } from 'inversify';
-import { IBankPlugin } from '../interfaces/IBankPlugin';
+import { IProviderPlugin } from '../../interfaces/IBankPlugin';
 import 'reflect-metadata';
 
 @injectable()
-export class BoaPlugin implements IBankPlugin {
+export class BoaPlugin implements IProviderPlugin {
   public async getAccounts(credentials: any): Promise<any[]> {
     console.log('Fetching accounts from Bank of America...');
     // Replace with your actual BofA API call logic, including error handling

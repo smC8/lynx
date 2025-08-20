@@ -1,62 +1,72 @@
 // Import necessary modules
 import { Container } from 'inversify';
-import { TYPES } from './domains/account-information/models/types';
+import { TYPES } from './common/types';
 import { IAccountInfoService } from './domains/account-information/interfaces/IAccountInfoService';
 import { AccountInfoService } from './domains/account-information/services/AccountInfoService';
-import { IBankPlugin } from './domains/account-information/interfaces/IBankPlugin';
+// import { IBankPlugin } from './providers/interfaces/IAccountInfoAdaptor';
+import { IBankPlugin } from './providers/interfaces/IAccountInfoAdaptor';
 import { AccountController } from './domains/account-information/controllers/AccountController';
 import * as fs from 'fs';
 import * as path from 'path';
-import 'reflect-metadata'; // Make sure this is imported for Inversify to work correctly
+import 'reflect-metadata';
+
+// Helper: recursively collect all .js plugin files
+function getPluginFiles(dir: string): string[] {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  let files: string[] = [];
+
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      files = files.concat(getPluginFiles(fullPath)); // recurse into subdir
+    } else if (
+      entry.isFile() &&
+      entry.name.endsWith('.js') &&
+      !entry.name.endsWith('.d.ts') &&
+      !entry.name.endsWith('.js.map')
+    ) {
+      files.push(fullPath);
+    }
+  }
+  return files;
+}
 
 export async function configureContainer(): Promise<Container> {
   const container = new Container();
 
-  // Bind the core service as a singleton
+  // Core bindings
   container.bind<IAccountInfoService>(TYPES.AccountInfoService).to(AccountInfoService).inSingletonScope();
-  container.bind<AccountController>(AccountController).toSelf(); // Bind the controller
+  container.bind<AccountController>(AccountController).toSelf();
 
-  // Dynamically bind bank plugins
-  // Adjust the path to point to the compiled JavaScript files in the dist directory
-  const pluginsDir = path.join(__dirname, '../dist/domains/account-information/plugins'); // Assuming dist is one level up from the compiled container.js
-  console.log(`Looking for plugins in: ${pluginsDir}`);
+  // Dynamically load plugins
+  const pluginsDir = path.join(__dirname, './providers/plugins'); // compiled dir
+  console.log(`Looking for plugins under: ${pluginsDir}`);
 
   try {
-    const files = fs.readdirSync(pluginsDir);
+    const pluginFiles = getPluginFiles(pluginsDir);
 
-    for (const file of files) {
-      // Process only compiled JavaScript files (excluding declaration files and map files)
-      if (file.endsWith('.js') && !file.endsWith('.d.ts') && !file.endsWith('.js.map')) {
-        const pluginPath = path.join(pluginsDir, file);
-        console.log(`Attempting to import plugin: ${pluginPath}`);
-        try {
-            const pluginModule = await import(pluginPath);
+    for (const pluginPath of pluginFiles) {
+      console.log(`Attempting to import plugin: ${pluginPath}`);
+      try {
+        const pluginModule = await import(pluginPath);
 
-            // Iterate through named exports to find the plugin class
-            for (const exportName in pluginModule) {
-                const PluginClass = pluginModule[exportName];
-
-                // Check if the export is a function (class) and potentially an Inversify injectable
-                // We can refine this check if needed, but start with a basic one
-                if (typeof PluginClass === 'function' && PluginClass.prototype) {
-                   // Add a more specific check if possible, e.g., if it has methods from IBankPlugin
-                   // For now, let's rely on the fact that our plugin files export the plugin class
-                   // You might want to add a more robust check here in a real application
-                   container.bind<IBankPlugin>(TYPES.IBankPlugin).to(PluginClass);
-                   console.log(`Bound plugin: ${exportName} from ${file}`);
-                   // Assuming only one plugin class per file, we can break after finding one
-                   break;
-                }
-            }
-        } catch (importError) {
-            console.error(`Failed to import plugin ${file}:`, importError);
+        for (const exportName in pluginModule) {
+          const PluginClass = pluginModule[exportName];
+          if (typeof PluginClass === 'function' && PluginClass.prototype) {
+            // Bind plugin class to IBankPlugin
+            container.bind<IBankPlugin>(TYPES.IBankPlugin).to(PluginClass).inSingletonScope();
+            console.log(`Bound plugin: ${exportName} from ${path.basename(pluginPath)}`);
+            break; // assume one plugin per file
+          }
         }
+      } catch (importError) {
+        console.error(`❌ Failed to import plugin ${pluginPath}:`, importError);
       }
     }
-  } catch (readDirError) {
-      console.error(`Failed to read plugins directory ${pluginsDir}:`, readDirError);
+  } catch (err) {
+    console.error(`❌ Failed to read plugins directory ${pluginsDir}:`, err);
   }
 
-
-  return container; // Return the configured container
+  return container;
 }

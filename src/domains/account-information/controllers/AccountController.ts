@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { controller, httpGet, request, response, queryParam } from 'inversify-express-utils';
 import { inject } from 'inversify';
 import { IAccountInfoService } from '../interfaces/IAccountInfoService';
-import { TYPES } from '../models/types';
+import { TYPES } from '../../../common/types';
 import 'reflect-metadata';
 
 @controller('/accounts')

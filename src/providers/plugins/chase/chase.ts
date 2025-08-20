@@ -1,9 +1,9 @@
 import { injectable } from 'inversify';
-import { IBankPlugin } from '../interfaces/IBankPlugin';
+import { IAccountInfoProvider } from '../../interfaces/IAccountInfoAdaptor';
 import 'reflect-metadata';
 
 @injectable()
-export class ChasePlugin implements IBankPlugin {
+export class ChasePlugin implements IAccountInfoProvider {
   public async getAccounts(credentials: any): Promise<any[]> {
     console.log('Fetching accounts from Chase...');
     // Replace with your actual Chase API call logic

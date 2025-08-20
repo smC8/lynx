@@ -1,7 +1,7 @@
 import { injectable, multiInject } from 'inversify';
-import { TYPES } from '../models/types';
+import { TYPES } from '../../../common/types';
 import { IAccountInfoService } from '../interfaces/IAccountInfoService';
-import { IBankPlugin } from '../interfaces/IBankPlugin';
+import { IBankPlugin } from '../../../providers/interfaces/IAccountInfoAdaptor';
 import 'reflect-metadata';
 
 @injectable()
