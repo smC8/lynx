@@ -3,8 +3,8 @@ import { Container } from 'inversify';
 import { TYPES } from './common/types';
 import { IAccountInfoService } from './domains/account-information/interfaces/IAccountInfoService';
 import { AccountInfoService } from './domains/account-information/services/AccountInfoService';
-// import { IBankPlugin } from './providers/interfaces/IAccountInfoAdaptor';
-import { IBankPlugin } from './providers/interfaces/IAccountInfoAdaptor';
+// import { IAccountInfoProvider } from './providers/interfaces/IAccountInfoAdaptor';
+import { IProviderPlugin } from './providers/interfaces/IProviderPlugin';
 import { AccountController } from './domains/account-information/controllers/AccountController';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -22,6 +22,7 @@ function getPluginFiles(dir: string): string[] {
       files = files.concat(getPluginFiles(fullPath)); // recurse into subdir
     } else if (
       entry.isFile() &&
+      entry.name.startsWith('index') &&
       entry.name.endsWith('.js') &&
       !entry.name.endsWith('.d.ts') &&
       !entry.name.endsWith('.js.map')
@@ -54,8 +55,9 @@ export async function configureContainer(): Promise<Container> {
         for (const exportName in pluginModule) {
           const PluginClass = pluginModule[exportName];
           if (typeof PluginClass === 'function' && PluginClass.prototype) {
-            // Bind plugin class to IBankPlugin
-            container.bind<IBankPlugin>(TYPES.IBankPlugin).to(PluginClass).inSingletonScope();
+            // Bind plugin class to IProviderPlugin
+            // container.bind<IAccountInfoProvider>(TYPES.IAccountInfoProvider).to(PluginClass).inSingletonScope();
+            container.bind<IProviderPlugin>(TYPES.IProviderPlugin).to(PluginClass).inSingletonScope();
             console.log(`Bound plugin: ${exportName} from ${path.basename(pluginPath)}`);
             break; // assume one plugin per file
           }

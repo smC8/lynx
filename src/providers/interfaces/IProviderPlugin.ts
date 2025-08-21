@@ -23,7 +23,7 @@ export interface IProviderPlugin {
   /**
    * A provider must expose a stable name (e.g. "chase", "plaid").
    */
-  name: string;
+  name?: string;
 
   /**
    * Provider-level init hook (optional).
@@ -42,5 +42,5 @@ export interface IProviderPlugin {
 
     /** Domain adapters this plugin provides (use either or both) */
   payment?: IPaymentProvider;
-  accountInfo?: IAccountInfoProvider;
+  accountInfo: IAccountInfoProvider;
 }
